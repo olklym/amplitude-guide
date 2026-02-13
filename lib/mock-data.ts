@@ -67,6 +67,93 @@ export const encounters: Encounter[] = [
   },
 ];
 
+const firstNames = [
+  "Olivia",
+  "Ethan",
+  "Sophia",
+  "Lucas",
+  "Amelia",
+  "Mason",
+  "Charlotte",
+  "James",
+];
+
+const lastNames = [
+  "Walker",
+  "Reed",
+  "Nguyen",
+  "Brooks",
+  "Sullivan",
+  "Parker",
+  "Rivera",
+  "Foster",
+];
+
+const cities = [
+  "Denver, CO",
+  "Chicago, IL",
+  "Miami, FL",
+  "Portland, OR",
+  "Phoenix, AZ",
+  "Nashville, TN",
+];
+
+const detailsPool = [
+  "Initial visit for fatigue and sleep concerns.",
+  "Follow-up for medication adjustment and symptom review.",
+  "Scheduled annual wellness check and preventive screening.",
+  "Consultation for persistent knee discomfort.",
+  "Care plan update after lab result discussion.",
+];
+
+const statuses: Encounter["status"][] = [
+  "Completed",
+  "In Progress",
+  "Scheduled",
+];
+
+function randomItem<T>(items: T[]) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function nextEncounterId() {
+  const maxId = encounters.reduce((max, encounter) => {
+    const value = Number.parseInt(encounter.id.replace("enc-", ""), 10);
+    return Number.isNaN(value) ? max : Math.max(max, value);
+  }, 1000);
+
+  return `enc-${maxId + 1}`;
+}
+
+function randomPatientName() {
+  return `${randomItem(firstNames)} ${randomItem(lastNames)}`;
+}
+
+export function createEncounterWithRandomDefaults(
+  overrides?: Partial<Pick<Encounter, "patientName" | "status" | "details">>,
+) {
+  const encounter: Encounter = {
+    id: nextEncounterId(),
+    patientName: overrides?.patientName?.trim() || randomPatientName(),
+    startDt: new Date().toISOString(),
+    status: overrides?.status || randomItem(statuses),
+    details: overrides?.details?.trim() || randomItem(detailsPool),
+    patient: {
+      age: Math.floor(Math.random() * 55) + 20,
+      weightKg: Math.floor(Math.random() * 50) + 50,
+      from: randomItem(cities),
+      gender: randomItem<Encounter["patient"]["gender"]>([
+        "Female",
+        "Male",
+        "Other",
+      ]),
+    },
+  };
+
+  encounters.unshift(encounter);
+  return encounter;
+}
+
 export function getEncounterById(id: string) {
   return encounters.find((encounter) => encounter.id === id);
 }

@@ -12,7 +12,21 @@ export function GuideControls() {
     () => process.env.NEXT_PUBLIC_AMPLITUDE_GUIDE_FLAG_KEY ?? "",
     [],
   );
-  const [flagKey, setFlagKey] = useState(defaultFlagKey);
+  const presetFlags = useMemo(() => {
+    const flags = ["guide-test"];
+    if (defaultFlagKey && !flags.includes(defaultFlagKey)) {
+      flags.push(defaultFlagKey);
+    }
+    return flags;
+  }, [defaultFlagKey]);
+  const initialSelection = useMemo(
+    () => (presetFlags.includes(defaultFlagKey) ? defaultFlagKey : "guide-test"),
+    [defaultFlagKey, presetFlags],
+  );
+  const [selectedFlag, setSelectedFlag] = useState(initialSelection);
+  const [flagKey, setFlagKey] = useState(
+    initialSelection === "custom" ? defaultFlagKey : initialSelection,
+  );
   const [status, setStatus] = useState("No action yet");
 
   const commonButtonClass =
@@ -30,15 +44,38 @@ export function GuideControls() {
       <div className="mt-4 flex flex-wrap items-end gap-3">
         <label className="grid gap-1">
           <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            Guide Flag Key
+            Guide Flag
           </span>
-          <input
-            value={flagKey}
-            onChange={(event) => setFlagKey(event.target.value)}
-            placeholder="onboarding_guide_flag_key"
+          <select
+            value={selectedFlag}
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              setSelectedFlag(nextValue);
+              setFlagKey(nextValue === "custom" ? "" : nextValue);
+            }}
             className="h-10 min-w-72 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-blue-500"
-          />
+          >
+            {presetFlags.map((flag) => (
+              <option key={flag} value={flag}>
+                {flag}
+              </option>
+            ))}
+            <option value="custom">Custom...</option>
+          </select>
         </label>
+        {selectedFlag === "custom" ? (
+          <label className="grid gap-1">
+            <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              Custom Flag Key
+            </span>
+            <input
+              value={flagKey}
+              onChange={(event) => setFlagKey(event.target.value)}
+              placeholder="onboarding_guide_flag_key"
+              className="h-10 min-w-72 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-blue-500"
+            />
+          </label>
+        ) : null}
 
         <button
           type="button"
