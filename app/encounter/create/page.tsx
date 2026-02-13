@@ -23,7 +23,7 @@ async function createEncounter(formData: FormData) {
     ? (statusInput as Encounter["status"])
     : undefined;
 
-  const encounter = createEncounterWithRandomDefaults({
+  const encounter = await createEncounterWithRandomDefaults({
     patientName: patientName || undefined,
     status,
     details: details || undefined,
@@ -74,18 +74,6 @@ export default function CreateEncounterPage() {
               <option value="In Progress">In Progress</option>
               <option value="Completed">Completed</option>
             </select>
-          </label>
-
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-slate-700">
-              Details (optional)
-            </span>
-            <textarea
-              name="details"
-              rows={4}
-              placeholder="Leave blank for random"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500"
-            />
           </label>
 
           <button

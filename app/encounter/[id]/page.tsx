@@ -19,7 +19,7 @@ function formatDateTime(dateIso: string) {
 
 export default async function EncounterPage({ params }: EncounterPageProps) {
   const { id } = await params;
-  const encounter = getEncounterById(id);
+  const encounter = await getEncounterById(id);
 
   if (!encounter) {
     notFound();

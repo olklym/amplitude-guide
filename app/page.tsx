@@ -1,7 +1,7 @@
 import { AppShell } from "@/components/app-shell";
 import { GuideControls } from "@/components/guide-controls";
 import { TrackedLink } from "@/components/tracked-link";
-import { encounters } from "@/lib/mock-data";
+import { getEncounters } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
@@ -15,13 +15,13 @@ function formatDateTime(dateIso: string) {
   });
 }
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const encounters = await getEncounters();
+
   return (
     <AppShell activeNav="dashboard" title="Dashboard">
       <GuideControls />
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="mb-4 flex justify-end">
-        </div>
         <div className="grid grid-cols-[1.3fr_1fr_1fr_0.7fr] gap-4 border-b border-slate-200 px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
           <span>Patient</span>
           <span>Start Date</span>
@@ -59,13 +59,15 @@ export default function DashboardPage() {
           ))}
         </ul>
 
-        <TrackedLink
+        <div className="mt-4 flex justify-end">
+          <TrackedLink
             href="/encounter/create"
             eventName="poc_create_encounter_opened"
             className="inline-flex rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100"
           >
             Create Encounter
           </TrackedLink>
+        </div>
       </div>
     </AppShell>
   );

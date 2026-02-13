@@ -1,3 +1,7 @@
+import { promises as fs } from "node:fs";
+import path from "node:path";
+import seedEncounters from "@/lib/encounters.json";
+
 export type Encounter = {
   id: string;
   patientName: string;
@@ -12,75 +16,42 @@ export type Encounter = {
   };
 };
 
-const initialEncounters: Encounter[] = [
-  {
-    id: "enc-1001",
-    patientName: "Ava Thompson",
-    startDt: "2026-02-11T09:15:00Z",
-    status: "Completed",
-    details: "Routine follow-up for blood pressure management.",
-    patient: {
-      age: 32,
-      weightKg: 61,
-      from: "Boston, MA",
-      gender: "Female",
-    },
-  },
-  {
-    id: "enc-1002",
-    patientName: "Noah Martinez",
-    startDt: "2026-02-12T13:45:00Z",
-    status: "In Progress",
-    details: "Initial consultation for lower back pain.",
-    patient: {
-      age: 44,
-      weightKg: 84,
-      from: "Austin, TX",
-      gender: "Male",
-    },
-  },
-  {
-    id: "enc-1003",
-    patientName: "Mia Patel",
-    startDt: "2026-02-14T08:30:00Z",
-    status: "Scheduled",
-    details: "Nutrition and lifestyle counseling session.",
-    patient: {
-      age: 27,
-      weightKg: 58,
-      from: "Seattle, WA",
-      gender: "Female",
-    },
-  },
-  {
-    id: "enc-1004",
-    patientName: "Liam Chen",
-    startDt: "2026-02-15T11:00:00Z",
-    status: "Scheduled",
-    details: "Review of lab results and treatment adjustment.",
-    patient: {
-      age: 51,
-      weightKg: 77,
-      from: "San Jose, CA",
-      gender: "Male",
-    },
-  },
-];
+const seedData: Encounter[] = seedEncounters as Encounter[];
+const encountersFilePath = path.join(process.cwd(), "lib", "encounters.json");
 
 declare global {
   var __amplitudeGuideEncounters: Encounter[] | undefined;
+  var __amplitudeGuideEncounterStorePromise: Promise<Encounter[]> | undefined;
 }
 
-function getEncounterStore() {
-  if (!globalThis.__amplitudeGuideEncounters) {
-    // Clone seed data once so we can mutate safely at runtime.
-    globalThis.__amplitudeGuideEncounters = [...initialEncounters];
+async function writeEncounterStore(items: Encounter[]) {
+  await fs.writeFile(encountersFilePath, `${JSON.stringify(items, null, 2)}\n`, "utf8");
+}
+
+async function ensureEncounterStore() {
+  if (globalThis.__amplitudeGuideEncounters) {
+    return globalThis.__amplitudeGuideEncounters;
   }
 
-  return globalThis.__amplitudeGuideEncounters;
-}
+  if (!globalThis.__amplitudeGuideEncounterStorePromise) {
+    globalThis.__amplitudeGuideEncounterStorePromise = (async () => {
+      try {
+        const fileContent = await fs.readFile(encountersFilePath, "utf8");
+        const parsed = JSON.parse(fileContent) as Encounter[];
+        globalThis.__amplitudeGuideEncounters = Array.isArray(parsed)
+          ? parsed
+          : [...seedData];
+      } catch {
+        globalThis.__amplitudeGuideEncounters = [...seedData];
+        await writeEncounterStore(globalThis.__amplitudeGuideEncounters);
+      }
 
-export const encounters: Encounter[] = getEncounterStore();
+      return globalThis.__amplitudeGuideEncounters;
+    })();
+  }
+
+  return globalThis.__amplitudeGuideEncounterStorePromise;
+}
 
 const firstNames = [
   "Olivia",
@@ -131,8 +102,8 @@ function randomItem<T>(items: T[]) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-function nextEncounterId() {
-  const maxId = encounters.reduce((max, encounter) => {
+function nextEncounterId(items: Encounter[]) {
+  const maxId = items.reduce((max, encounter) => {
     const value = Number.parseInt(encounter.id.replace("enc-", ""), 10);
     return Number.isNaN(value) ? max : Math.max(max, value);
   }, 1000);
@@ -144,11 +115,12 @@ function randomPatientName() {
   return `${randomItem(firstNames)} ${randomItem(lastNames)}`;
 }
 
-export function createEncounterWithRandomDefaults(
+export async function createEncounterWithRandomDefaults(
   overrides?: Partial<Pick<Encounter, "patientName" | "status" | "details">>,
 ) {
+  const encounters = await ensureEncounterStore();
   const encounter: Encounter = {
-    id: nextEncounterId(),
+    id: nextEncounterId(encounters),
     patientName: overrides?.patientName?.trim() || randomPatientName(),
     startDt: new Date().toISOString(),
     status: overrides?.status || randomItem(statuses),
@@ -166,9 +138,15 @@ export function createEncounterWithRandomDefaults(
   };
 
   encounters.unshift(encounter);
+  await writeEncounterStore(encounters);
   return encounter;
 }
 
-export function getEncounterById(id: string) {
+export async function getEncounterById(id: string) {
+  const encounters = await ensureEncounterStore();
   return encounters.find((encounter) => encounter.id === id);
+}
+
+export async function getEncounters() {
+  return ensureEncounterStore();
 }
