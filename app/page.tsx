@@ -1,6 +1,12 @@
+import { cookies } from "next/headers";
 import { AppShell } from "@/components/app-shell";
 import { GuideControls } from "@/components/guide-controls";
 import { TrackedLink } from "@/components/tracked-link";
+import {
+  CREATED_ENCOUNTERS_COOKIE,
+  mergeEncounters,
+  readCreatedEncountersFromCookie,
+} from "@/lib/created-encounters-cookie";
 import { getEncounters } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +22,11 @@ function formatDateTime(dateIso: string) {
 }
 
 export default async function DashboardPage() {
-  const encounters = await getEncounters();
+  const cookieStore = await cookies();
+  const createdEncounters = readCreatedEncountersFromCookie(
+    cookieStore.get(CREATED_ENCOUNTERS_COOKIE)?.value,
+  );
+  const encounters = mergeEncounters(await getEncounters(), createdEncounters);
 
   return (
     <AppShell activeNav="dashboard" title="Dashboard">

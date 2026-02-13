@@ -1,6 +1,11 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { TrackedLink } from "@/components/tracked-link";
+import {
+  CREATED_ENCOUNTERS_COOKIE,
+  readCreatedEncountersFromCookie,
+} from "@/lib/created-encounters-cookie";
 import { getEncounterById } from "@/lib/mock-data";
 
 type EncounterPageProps = {
@@ -19,7 +24,15 @@ function formatDateTime(dateIso: string) {
 
 export default async function EncounterPage({ params }: EncounterPageProps) {
   const { id } = await params;
-  const encounter = await getEncounterById(id);
+  let encounter = await getEncounterById(id);
+
+  if (!encounter) {
+    const cookieStore = await cookies();
+    const createdEncounters = readCreatedEncountersFromCookie(
+      cookieStore.get(CREATED_ENCOUNTERS_COOKIE)?.value,
+    );
+    encounter = createdEncounters.find((item) => item.id === id);
+  }
 
   if (!encounter) {
     notFound();

@@ -1,6 +1,12 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { AppShell } from "@/components/app-shell";
 import { TrackedLink } from "@/components/tracked-link";
+import {
+  CREATED_ENCOUNTERS_COOKIE,
+  readCreatedEncountersFromCookie,
+  upsertCreatedEncounters,
+} from "@/lib/created-encounters-cookie";
 import {
   createEncounterWithRandomDefaults,
   type Encounter,
@@ -28,6 +34,24 @@ async function createEncounter(formData: FormData) {
     status,
     details: details || undefined,
   });
+
+  const cookieStore = await cookies();
+  const existingCreated = readCreatedEncountersFromCookie(
+    cookieStore.get(CREATED_ENCOUNTERS_COOKIE)?.value,
+  );
+  const updatedCreated = upsertCreatedEncounters(existingCreated, encounter);
+
+  cookieStore.set(
+    CREATED_ENCOUNTERS_COOKIE,
+    JSON.stringify(updatedCreated),
+    {
+      httpOnly: true,
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    },
+  );
 
   redirect(`/encounter/${encounter.id}`);
 }
