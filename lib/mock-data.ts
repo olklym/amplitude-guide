@@ -18,14 +18,38 @@ export type Encounter = {
 
 const seedData: Encounter[] = seedEncounters as Encounter[];
 const encountersFilePath = path.join(process.cwd(), "lib", "encounters.json");
+const canUseFilePersistence = process.env.NODE_ENV === "development";
 
 declare global {
   var __amplitudeGuideEncounters: Encounter[] | undefined;
   var __amplitudeGuideEncounterStorePromise: Promise<Encounter[]> | undefined;
+  var __amplitudeGuideCanPersist: boolean | undefined;
+  var __amplitudeGuidePersistWarned: boolean | undefined;
 }
 
 async function writeEncounterStore(items: Encounter[]) {
-  await fs.writeFile(encountersFilePath, `${JSON.stringify(items, null, 2)}\n`, "utf8");
+  if (!canUseFilePersistence) {
+    return;
+  }
+
+  try {
+    await fs.writeFile(
+      encountersFilePath,
+      `${JSON.stringify(items, null, 2)}\n`,
+      "utf8",
+    );
+    globalThis.__amplitudeGuideCanPersist = true;
+  } catch (error) {
+    globalThis.__amplitudeGuideCanPersist = false;
+
+    if (!globalThis.__amplitudeGuidePersistWarned) {
+      globalThis.__amplitudeGuidePersistWarned = true;
+      console.warn(
+        "[mock-data] Could not write encounters.json; using in-memory data only.",
+        error,
+      );
+    }
+  }
 }
 
 async function ensureEncounterStore() {
@@ -35,6 +59,11 @@ async function ensureEncounterStore() {
 
   if (!globalThis.__amplitudeGuideEncounterStorePromise) {
     globalThis.__amplitudeGuideEncounterStorePromise = (async () => {
+      if (!canUseFilePersistence) {
+        globalThis.__amplitudeGuideEncounters = [...seedData];
+        return globalThis.__amplitudeGuideEncounters;
+      }
+
       try {
         const fileContent = await fs.readFile(encountersFilePath, "utf8");
         const parsed = JSON.parse(fileContent) as Encounter[];
@@ -50,7 +79,16 @@ async function ensureEncounterStore() {
     })();
   }
 
-  return globalThis.__amplitudeGuideEncounterStorePromise;
+  try {
+    return await globalThis.__amplitudeGuideEncounterStorePromise;
+  } catch {
+    // Keep the app functional even if file-backed storage fails at runtime.
+    globalThis.__amplitudeGuideEncounters = [...seedData];
+    globalThis.__amplitudeGuideEncounterStorePromise = Promise.resolve(
+      globalThis.__amplitudeGuideEncounters,
+    );
+    return globalThis.__amplitudeGuideEncounters;
+  }
 }
 
 const firstNames = [
