@@ -12,7 +12,7 @@ export type Encounter = {
   };
 };
 
-export const encounters: Encounter[] = [
+const initialEncounters: Encounter[] = [
   {
     id: "enc-1001",
     patientName: "Ava Thompson",
@@ -66,6 +66,21 @@ export const encounters: Encounter[] = [
     },
   },
 ];
+
+declare global {
+  var __amplitudeGuideEncounters: Encounter[] | undefined;
+}
+
+function getEncounterStore() {
+  if (!globalThis.__amplitudeGuideEncounters) {
+    // Clone seed data once so we can mutate safely at runtime.
+    globalThis.__amplitudeGuideEncounters = [...initialEncounters];
+  }
+
+  return globalThis.__amplitudeGuideEncounters;
+}
+
+export const encounters: Encounter[] = getEncounterStore();
 
 const firstNames = [
   "Olivia",
