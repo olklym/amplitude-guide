@@ -35,8 +35,8 @@ export function initAmplitude() {
   amplitude.init(AMPLITUDE_API_KEY, POC_USER_ID, {
     autocapture: {
       sessions: true,
-      pageViews: false,
-      formInteractions: false,
+      pageViews: true,
+      formInteractions: true,
       fileDownloads: false,
       elementInteractions: true,
     },
