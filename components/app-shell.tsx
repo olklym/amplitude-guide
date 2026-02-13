@@ -60,6 +60,7 @@ export function AppShell({ activeNav, title, children }: AppShellProps) {
                   className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700"
                   data-amp-track-name="upload_or_drop"
                   data-amp-track-surface="app_shell_header_actions"
+                  data-amp-track-location="shell"
                   onClick={() => trackEvent("poc_upload_clicked")}
                 >
                   Upload or drop
@@ -67,18 +68,14 @@ export function AppShell({ activeNav, title, children }: AppShellProps) {
                 <button
                   type="button"
                   className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700"
-                  data-amp-track-name="edit_file"
-                  data-amp-track-surface="app_shell_header_actions"
-                  onClick={() => trackEvent("poc_edit_file_clicked")}
+                  onClick={() => {}}
                 >
                   Edit file
                 </button>
                 <button
                   type="button"
                   className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700"
-                  data-amp-track-name="share_file"
-                  data-amp-track-surface="app_shell_header_actions"
-                  onClick={() => trackEvent("poc_share_file_clicked")}
+                  onClick={() => {}}
                 >
                   Share file
                 </button>
