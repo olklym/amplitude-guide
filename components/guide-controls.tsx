@@ -2,8 +2,6 @@
 
 import { useMemo, useState } from "react";
 import {
-  listActiveGuides,
-  openResourceCenter,
   refreshGuides,
   showGuide,
   trackEvent,
@@ -71,33 +69,6 @@ export function GuideControls() {
           Refresh Guides
         </button>
 
-        <button
-          type="button"
-          className={commonButtonClass}
-          onClick={() => {
-            const opened = openResourceCenter();
-            trackEvent("poc_open_resource_center");
-            setStatus(opened ? "Resource Center opened." : "Guide SDK not ready.");
-          }}
-        >
-          Open Resource Center
-        </button>
-
-        <button
-          type="button"
-          className={commonButtonClass}
-          onClick={() => {
-            const activeGuides = listActiveGuides();
-            trackEvent("poc_list_active_guides", { activeCount: activeGuides.length });
-            setStatus(
-              activeGuides.length
-                ? `Active guides: ${activeGuides.map((guide) => guide.key).join(", ")}`
-                : "No active/visible guides.",
-            );
-          }}
-        >
-          List Active Guides
-        </button>
       </div>
 
       <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
