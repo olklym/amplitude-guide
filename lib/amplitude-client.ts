@@ -33,11 +33,12 @@ export function initAmplitude() {
   );
 
   amplitude.init(AMPLITUDE_API_KEY, POC_USER_ID, {
-    defaultTracking: {
+    autocapture: {
       sessions: true,
       pageViews: false,
       formInteractions: false,
       fileDownloads: false,
+      elementInteractions: true,
     },
   });
 

@@ -60,6 +60,8 @@ export function ProfileForm() {
       <button
         type="button"
         className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        data-amp-track-name="save_profile_changes"
+        data-amp-track-surface="profile_form"
         onClick={() => {
           trackEvent("poc_profile_save_clicked", {
             section: "profile",

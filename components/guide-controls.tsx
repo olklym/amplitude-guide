@@ -43,6 +43,8 @@ export function GuideControls() {
         <button
           type="button"
           className={commonButtonClass}
+          data-amp-track-name="show_guide"
+          data-amp-track-surface="guide_controls"
           onClick={() => {
             if (!flagKey.trim()) {
               setStatus("Add a flag key first.");
@@ -60,6 +62,8 @@ export function GuideControls() {
         <button
           type="button"
           className={commonButtonClass}
+          data-amp-track-name="refresh_guides"
+          data-amp-track-surface="guide_controls"
           onClick={async () => {
             const refreshed = await refreshGuides();
             trackEvent("poc_manual_refresh_guides");
